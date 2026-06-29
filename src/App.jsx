@@ -315,8 +315,8 @@ function isFollowUpAlertActive(cand, customHolidaySet) {
   return !(checklist[todayIdx * 2] && checklist[todayIdx * 2 + 1]);
 }
 
-/* 追客タスクの1スロットをON/OFFし、活動履歴に記録する */
-function toggleFollowUpChecklistSlot(cand, slotIndex, customHolidaySet) {
+/* 追客タスクの1スロットをON/OFFし、追客ログ（日時・何回目か）と活動履歴の両方に記録する */
+function toggleFollowUpChecklistSlot(cand, slotIndex, customHolidaySet, staffName) {
   const checklist = [...(cand.followUpChecklist || emptyFollowUpChecklist())];
   const newValue = !checklist[slotIndex];
   checklist[slotIndex] = newValue;
@@ -327,8 +327,15 @@ function toggleFollowUpChecklistSlot(cand, slotIndex, customHolidaySet) {
   const next = { ...cand, followUpChecklist: checklist, updatedAt: new Date().toISOString() };
   if (newValue) {
     next.lastContactDate = todayStr();
+    const logEntry = {
+      id: uid("fu"), date: nowDateTimeStr(), staffName: staffName || "",
+      memo: `${dayNum}営業日目・${touchNum}回目の追客タスクを完了（${fmtDate(dateStr)}）`,
+      createdAt: new Date().toISOString(), checklistSlot: slotIndex,
+    };
+    next.followUpLog = [...(cand.followUpLog || []), logEntry];
     next.activities = [...(cand.activities || []), { id: uid("a"), date: new Date().toISOString(), content: `追客タスク完了：${dayNum}営業日目・${touchNum}回目（${fmtDate(dateStr)}）` }];
   } else {
+    next.followUpLog = (cand.followUpLog || []).filter((e) => e.checklistSlot !== slotIndex);
     next.activities = [...(cand.activities || []), { id: uid("a"), date: new Date().toISOString(), content: `追客タスクのチェックを解除：${dayNum}営業日目・${touchNum}回目` }];
   }
   return next;
@@ -1712,7 +1719,7 @@ function FollowUpPanel({ candidates, consultants, myName, customHolidays, onUpse
   }
 
   function handleToggleFollowUpSlot(cand, slotIndex) {
-    onUpsertCandidate(toggleFollowUpChecklistSlot(cand, slotIndex, customHolidaySet));
+    onUpsertCandidate(toggleFollowUpChecklistSlot(cand, slotIndex, customHolidaySet, myName));
   }
 
   function handleQuickAddSubmit() {
@@ -1991,7 +1998,7 @@ function CandidateModal({ candidate, consultants, isNew, myName, service, custom
   }
   function handleQuickAddFollowUp() { setForm((f) => addFollowUpEntryToCandidate(f, { staffName: myName || "" })); }
   const customHolidaySet = useMemo(() => buildCustomHolidaySet(customHolidays), [customHolidays]);
-  function handleToggleChecklistSlot(slot) { setForm((f) => toggleFollowUpChecklistSlot(f, slot, customHolidaySet)); }
+  function handleToggleChecklistSlot(slot) { setForm((f) => toggleFollowUpChecklistSlot(f, slot, customHolidaySet, myName)); }
   function handleFollowUpFieldsChange(entryId, fields) { setForm((f) => updateFollowUpEntryInCandidate(f, entryId, fields)); }
   function handleFollowUpRemove(entryId) {
     setForm((f) => removeFollowUpEntryFromCandidate(f, entryId));
@@ -2189,7 +2196,7 @@ function CandidateModal({ candidate, consultants, isNew, myName, service, custom
                   </div>
                 );
               })()}
-              <p className="text-[11px] text-slate-400 mt-1.5">合計{(form.followUpChecklist || emptyFollowUpChecklist()).filter(Boolean).length}/10件完了。チェックすると活動履歴にも記録されます。</p>
+              <p className="text-[11px] text-slate-400 mt-1.5">合計{(form.followUpChecklist || emptyFollowUpChecklist()).filter(Boolean).length}/10件完了。チェックすると、日時付きで下の「追客ログ」にも記録されます。</p>
             </div>
           )}
 
@@ -3234,7 +3241,7 @@ function CRM({ service, onSwitchService }) {
           <div className="flex items-center gap-2 min-w-0">
             <div className="text-white rounded-lg p-1.5 shrink-0" style={{ backgroundColor: serviceInfo.color }}><Users size={16} /></div>
             <div className="min-w-0">
-              <div className="font-semibold text-slate-900 leading-tight truncate">求職者CRM</div>
+              <div className="font-semibold text-slate-900 leading-tight truncate">人材事業CRM</div>
               <div className="text-[11px] leading-tight truncate" style={{ color: serviceInfo.color }}>{serviceInfo.name}</div>
             </div>
           </div>
@@ -3297,7 +3304,7 @@ function ServiceSelector({ onChoose }) {
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
           <div className="inline-flex bg-slate-900 text-white rounded-xl p-2.5 mb-4"><Users size={22} /></div>
-          <h1 className="text-xl font-semibold text-slate-900">求職者CRM</h1>
+          <h1 className="text-xl font-semibold text-slate-900">人材事業CRM</h1>
           <p className="text-sm text-slate-500 mt-1.5">ご利用する事業を選択してください</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
