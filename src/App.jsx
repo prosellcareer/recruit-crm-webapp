@@ -1284,9 +1284,6 @@ function CandidateCard({ c, onOpen }) {
           <span className="font-medium text-slate-900 truncate">{c.name || "（氏名未設定）"}</span>
           <YomiBadge yomi={c.yomi} />
           <CandidateStatusBadge status={c.status} />
-          {c.showInFollowUpList === false && (
-            <span className="text-[10px] text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">追客リスト非表示</span>
-          )}
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
           {c.assignedTo && <span>担当：{c.assignedTo}</span>}
@@ -1317,6 +1314,7 @@ function CandidateListPanel({ candidates, consultants, onOpen, onNew, onExport, 
 
   const filtered = useMemo(() => {
     return candidates
+      .filter((c) => c.showInFollowUpList === false)
       .filter((c) => phaseFilter === "all" || candidateStatusInfo(c.status).phase === phaseFilter)
       .filter((c) => assigneeFilter === "all" || c.assignedTo === assigneeFilter)
       .filter((c) => {
@@ -1332,11 +1330,12 @@ function CandidateListPanel({ candidates, consultants, onOpen, onNew, onExport, 
       .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
   }, [candidates, phaseFilter, assigneeFilter, search]);
 
+  const visibleCandidates = useMemo(() => candidates.filter((c) => c.showInFollowUpList === false), [candidates]);
   const counts = {
-    all: candidates.length,
-    pre: candidates.filter((c) => candidateStatusInfo(c.status).phase === "pre").length,
-    active: candidates.filter((c) => candidateStatusInfo(c.status).phase === "active").length,
-    closed: candidates.filter((c) => candidateStatusInfo(c.status).phase === "closed").length,
+    all: visibleCandidates.length,
+    pre: visibleCandidates.filter((c) => candidateStatusInfo(c.status).phase === "pre").length,
+    active: visibleCandidates.filter((c) => candidateStatusInfo(c.status).phase === "active").length,
+    closed: visibleCandidates.filter((c) => candidateStatusInfo(c.status).phase === "closed").length,
   };
 
   return (
@@ -2052,7 +2051,7 @@ function CandidateModal({ candidate, consultants, isNew, myName, service, custom
           <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3.5 py-2.5">
             <div>
               <div className="text-sm font-medium text-slate-700">追客リストに表示する</div>
-              <div className="text-[11px] text-slate-400">OFFにすると、求職者一覧には残ったまま追客リストには表示されなくなります</div>
+              <div className="text-[11px] text-slate-400">ONの間は追客リストにのみ表示されます。OFFにすると求職者一覧にのみ表示されます（両方に同時には表示されません）</div>
             </div>
             <button
               type="button"
