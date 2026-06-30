@@ -783,7 +783,7 @@ function emptyCandidate() {
     hasSelfApplication: "", usesOtherAgency: "", proposedJobType: "",
     inflowJobPosting: "", procellApplicationCount: "", procellDocumentPassedCount: "",
     procellInterviewConfirmedCount: "", procellInterviewPassedCount: "", procellOfferCount: "",
-    cohortMonth: currentMonthKey(), followUpLog: [], followUpChecklist: emptyFollowUpChecklist(),
+    cohortMonth: currentMonthKey(), followUpLog: [], followUpChecklist: emptyFollowUpChecklist(), showInFollowUpList: true,
     interviews: [], applications: [], activities: [],
     createdAt: now, updatedAt: now,
   };
@@ -1284,6 +1284,9 @@ function CandidateCard({ c, onOpen }) {
           <span className="font-medium text-slate-900 truncate">{c.name || "（氏名未設定）"}</span>
           <YomiBadge yomi={c.yomi} />
           <CandidateStatusBadge status={c.status} />
+          {c.showInFollowUpList === false && (
+            <span className="text-[10px] text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">追客リスト非表示</span>
+          )}
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
           {c.assignedTo && <span>担当：{c.assignedTo}</span>}
@@ -1699,6 +1702,7 @@ function FollowUpPanel({ candidates, consultants, myName, customHolidays, onUpse
   const monthCandidates = useMemo(
     () => candidates
       .filter((c) => c.cohortMonth === month)
+      .filter((c) => c.showInFollowUpList !== false)
       .filter((c) => sourceFilter === "all" || c.source === sourceFilter)
       .sort((a, b) => (a.registeredDate + (a.applicationTime || "")).localeCompare(b.registeredDate + (b.applicationTime || ""))),
     [candidates, month, sourceFilter]
@@ -1706,7 +1710,7 @@ function FollowUpPanel({ candidates, consultants, myName, customHolidays, onUpse
 
   const prevMonth = prevMonthKey(month);
   const rollCandidates = useMemo(
-    () => candidates.filter((c) => c.cohortMonth === prevMonth && candidateStatusInfo(c.status).phase === "pre"),
+    () => candidates.filter((c) => c.cohortMonth === prevMonth && c.showInFollowUpList !== false && candidateStatusInfo(c.status).phase === "pre"),
     [candidates, prevMonth]
   );
 
@@ -2043,6 +2047,20 @@ function CandidateModal({ candidate, consultants, isNew, myName, service, custom
                 </optgroup>
               ))}
             </select>
+          </div>
+
+          <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3.5 py-2.5">
+            <div>
+              <div className="text-sm font-medium text-slate-700">追客リストに表示する</div>
+              <div className="text-[11px] text-slate-400">OFFにすると、求職者一覧には残ったまま追客リストには表示されなくなります</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => set("showInFollowUpList", !form.showInFollowUpList)}
+              className={`shrink-0 w-11 h-6 rounded-full transition-colors relative ${form.showInFollowUpList ? "bg-indigo-600" : "bg-slate-300"}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.showInFollowUpList ? "translate-x-5" : ""}`} />
+            </button>
           </div>
 
           {/* 基本情報 */}
