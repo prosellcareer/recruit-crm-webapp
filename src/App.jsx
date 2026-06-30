@@ -454,6 +454,7 @@ const KPI_ROWS = [
   { key: "firstMeetingDone", label: "初回面談実施数", hasCalendar: true },
   { key: "followMeetingDone", label: "フォロー面談実施数", hasCalendar: true },
   { key: "meetingDoneTotal", label: "面談実施数", hasCalendar: false },
+  { key: "applicationsCount", label: "応募数", hasCalendar: true },
   { key: "documentPassed", label: "書類通過数", hasCalendar: true },
   { key: "offers", label: "内定数", hasCalendar: true },
   { key: "offerAccepted", label: "内定承諾数", hasCalendar: true },
@@ -461,7 +462,7 @@ const KPI_ROWS = [
 function emptyKpiTarget() {
   return {
     meetingScheduled: 0, firstMeetingDone: 0, followMeetingDone: 0, meetingDoneTotal: 0,
-    documentPassed: 0, offers: 0, offerAccepted: 0,
+    applicationsCount: 0, documentPassed: 0, offers: 0, offerAccepted: 0,
     revenueTarget: 0, revenueActual: 0,
   };
 }
@@ -491,6 +492,7 @@ function computeScopeKpiActuals(dailyKpiValues, scope, consultants, month) {
     firstMeetingDone,
     followMeetingDone,
     meetingDoneTotal: firstMeetingDone + followMeetingDone,
+    applicationsCount: sumMetric("applicationsCount"),
     documentPassed: sumMetric("documentPassed"),
     offers: sumMetric("offers"),
     offerAccepted: sumMetric("offerAccepted"),
