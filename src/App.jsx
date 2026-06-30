@@ -781,6 +781,8 @@ function emptyCandidate() {
     employmentStatus: "", currentSalary: "", desiredSalary: "", minDesiredSalary: "",
     desiredWorkLocation: [], desiredJoinTiming: "", jobChangeAxis: "",
     hasSelfApplication: "", usesOtherAgency: "", proposedJobType: "",
+    inflowJobPosting: "", procellApplicationCount: "", procellDocumentPassedCount: "",
+    procellInterviewConfirmedCount: "", procellInterviewPassedCount: "", procellOfferCount: "",
     cohortMonth: currentMonthKey(), followUpLog: [], followUpChecklist: emptyFollowUpChecklist(),
     interviews: [], applications: [], activities: [],
     createdAt: now, updatedAt: now,
@@ -2063,6 +2065,7 @@ function CandidateModal({ candidate, consultants, isNew, myName, service, custom
                 {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </Field>
+            <Field label="流入求人"><input value={form.inflowJobPosting} onChange={(e) => set("inflowJobPosting", e.target.value)} placeholder="例：カスタマーサクセス（法人向け）" className="input" /></Field>
             <Field label="登録日"><input type="date" value={form.registeredDate} onChange={(e) => set("registeredDate", e.target.value)} className="input" /></Field>
             <Field label="応募時刻（任意）"><input type="time" value={form.applicationTime} onChange={(e) => set("applicationTime", e.target.value)} className="input" /></Field>
             <Field label="担当者">
@@ -2284,6 +2287,19 @@ function CandidateModal({ candidate, consultants, isNew, myName, service, custom
               </div>
             </div>
           )}
+
+          {/* プロセル選考実績（手入力） */}
+          <div>
+            <div className="text-xs font-medium text-slate-500 mb-2">プロセル選考実績（手入力）</div>
+            <div className="grid grid-cols-5 gap-2">
+              <Field label="応募求人数"><input type="number" min={0} value={form.procellApplicationCount} onChange={(e) => set("procellApplicationCount", e.target.value)} className="input text-center" /></Field>
+              <Field label="書類通過数"><input type="number" min={0} value={form.procellDocumentPassedCount} onChange={(e) => set("procellDocumentPassedCount", e.target.value)} className="input text-center" /></Field>
+              <Field label="面接確定数"><input type="number" min={0} value={form.procellInterviewConfirmedCount} onChange={(e) => set("procellInterviewConfirmedCount", e.target.value)} className="input text-center" /></Field>
+              <Field label="面接通過数"><input type="number" min={0} value={form.procellInterviewPassedCount} onChange={(e) => set("procellInterviewPassedCount", e.target.value)} className="input text-center" /></Field>
+              <Field label="内定数"><input type="number" min={0} value={form.procellOfferCount} onChange={(e) => set("procellOfferCount", e.target.value)} className="input text-center" /></Field>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1.5">※上の「選考サマリー」は応募先データからの自動集計、こちらは手入力の実績値です。両者は別管理です。</p>
+          </div>
 
           {/* 応募先一覧 */}
           {!isNew && (
